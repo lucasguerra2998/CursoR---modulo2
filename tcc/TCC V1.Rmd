@@ -1,0 +1,726 @@
+---
+title: "Do Mil ao Milhão: sem cortar a pipoquinha"
+output: html_document
+---
+
+```{r setup,include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,warning = FALSE, message = FALSE)
+```
+
+
+Cansado daqueles anúncios enganosos sobre cursos milagrosos que vão te deixar rico da noite pro dia, da propagandas sobre marketing digital, hotmart e tantos outros de pessoas que querem ensinar a virar milionário através de curso online?
+
+Pois você veio ao lugar certo, aqui na LucasGuerra treinamentos nós temos todo o conteúdo para que você saia da mesmice e desponte no mercado do cinema como um produtor de elite!
+Tudo o que você precisa fazer é se inscrever na **Semana do Produtor de Elite**, uma semana COMPLETAMENTE GRATUITA onde daremos aulas e workshops para que você saia de lá com o mindset de um cineasta.
+
+E sabe qual a principal diferença entre o nosso conteúdo e o desses fazedores de promessa de rede social? Não fazemos uso de achismos e crenças vazias, aqui nossas afirmações tem embasamento numérico! Isso mesmo, não existem adivinhações, todas as conclusões são feitas através da análise de dados a respeito de filmes desde 1916!
+
+Então não perca tempo e venha aprender com a gente sobre os segredos do cinema mundial!
+
+Com a nossa ajuda você vai sair disso aqui:
+
+```{r,fig.align="center"}
+
+library(magick)
+
+bart <- image_read("https://media1.tenor.com/images/96c2291ac3bc9a4b86a8be739d3bbe05/tenor.gif?itemid=10775176")
+bart <- image_scale(bart,"500")
+bart <- image_annotate(bart,"Antes do Curso",size = 25,gravity = "north", color = "white",weight = 700,location = "+0+10")
+
+bart
+
+```
+
+
+Para isso aqui:
+
+```{r,fig.align="center"}
+money <- image_read("https://acegif.com/wp-content/uploads/funny-money-34.gif")
+money <- image_scale(money,"500")
+money <- image_annotate(money,"Depois do Curso",size = 25,gravity = "north", color = "black",weight = 700,location = "+0+10")
+
+money
+
+```
+
+
+Nâo acredita no que eu estou dizendo? Pois tenho certeza que ao final desse e-book COMPLETAMENTE GRATUITO você terá mudado de opinião!
+
+### **1. Introdução ao Mercado do Cinema**
+
+Bem vindo! Aqui vamos te ensinar todos os conceitos essenciais para que você seja um produtor de sucesso no cenário mundial.
+
+Antes de tudo, é importante que você tenha algum conhecimento sobre as tendências atuais no mercado, você sabia que os filmes preto e branco já saíram da moda? Não? Então observe o gráfico abaixo:
+
+```{r,echo=FALSE,fig.align = "center", warning = FALSE}
+
+library(tidyverse)
+#library(dplyr)
+library(ggplot2)
+
+
+imdb_original <- readr::read_rds("imdb.rds")
+
+imdb <- imdb_original
+base <- imdb %>% 
+  mutate(
+    lucro=receita-orcamento,
+    lucrou=ifelse(lucro>0,TRUE,FALSE)
+  )
+
+base <- base %>% 
+  mutate(
+    lucro_relativo=lucro/orcamento)
+
+base <- base %>% 
+  mutate(cor=ifelse(cor=="Color","Colorido",ifelse(is.na(cor),NA,"Preto e Branco")))
+
+
+base <- base %>% 
+  mutate(
+    duracao_discreta=case_when(duracao<50~"0-49",duracao<100~"050-99",duracao<150~"100-149",duracao<200~"150-199",duracao<250~"200-249",duracao<300~"250-299",duracao>=300~"300+")
+  )
+
+G1 <- base %>% 
+  filter(!is.na(cor)) %>% 
+  count(ano,cor) %>% 
+  ggplot()+
+  geom_line(aes(x=ano,y=n,color=cor))+
+  labs(
+    title="Tendências do Mercado - Cores",
+    subtitle = "Tempo X Filmes Produzidos",
+    x = "Ano",
+    y = "N° de filmes produzidos",
+    color = "Cor"
+  )+
+  theme_classic()
+
+G1
+
+
+```
+
+Ainda não está convencido? Pois então veja só a comparação de lucro entre as duas categorias:
+
+```{r}
+
+T1 <- base %>%
+  filter(!is.na(cor)) %>%
+  group_by(cor) %>%
+  summarise(`Lucro Médio` = mean(lucro,na.rm = TRUE))
+
+T1 <- T1 %>% 
+  mutate(`Lucro Médio` = as.character(`Lucro Médio`)) %>% 
+  mutate(`Lucro Médio` = paste0("USD ",`Lucro Médio`),
+         `Lucro Médio` = substring(`Lucro Médio`,1,7),
+         `Lucro Médio` = paste0(`Lucro Médio`, " M"))
+
+
+
+T1 <- knitr::kable(T1,align = 'c',col.names = c("Cor","Lucro Médio"))
+
+T1
+
+
+```
+
+Convencido agora? Você finalmente entendeu que os **filmes coloridos são a melhor opção**, mas você tem alguma noção sobre a duração do filme?
+
+Ok ok, eu sei que o filme do Senhor dos Anéis dura uma semana e mesmo assim tem uma legião de fãs, mas nem sempre é assim ta?
+
+Fazendo algumas comparações em função da faixa de duração chegamos aos seguintes resultados:
+
+```{r,fig.align = "center"}
+
+G2.1 <- base %>% 
+  filter(!is.na(duracao_discreta)) %>% 
+  group_by(duracao_discreta) %>%
+  summarise(lucro_medio=mean(lucro,na.rm = TRUE)) %>% 
+  ggplot()+
+  geom_col(aes(x=duracao_discreta,y=lucro_medio),fill="royalblue")+
+  theme_classic()+
+  labs(x = "Duração do filme (min)",
+       y = "Lucro Médio",
+       title = "Escolhendo a duração adequada",
+       subtitle = "Duração X Lucro")
+G2.1
+
+```
+
+```{r,fig.align="center"}
+
+G2.2 <- base %>% 
+  filter(!is.na(duracao_discreta)) %>% 
+  group_by(duracao_discreta) %>%
+  #summarise(nota_media=mean(nota_imdb,na.rm = TRUE)) %>% 
+  summarise(nota_media=mean(nota_imdb,na.rm = TRUE)) %>% 
+  ggplot()+
+  geom_col(aes(x=duracao_discreta,y=nota_media),fill="royalblue")+
+  theme_classic()+
+  labs(x = "Duração do filme (min)",
+       y = "Nota Média",
+       subtitle = "Duração X Avaliação")
+
+
+G2.2
+
+
+```
+
+
+```{r,fig.align="center"}
+
+G2.3 <- base %>% 
+  arrange(duracao_discreta) %>% 
+  filter(!is.na(duracao_discreta)) %>% 
+  arrange(duracao_discreta) %>% 
+  group_by(duracao_discreta) %>%
+  #summarise(nota_media=mean(nota_imdb,na.rm = TRUE)) %>% 
+  summarise(likes_medio=mean(likes_facebook,na.rm = TRUE)) %>% 
+  ggplot()+
+  geom_col(aes(x=duracao_discreta,y=likes_medio),fill="royalblue")+
+  theme_classic()+
+  labs(x = "Duração do filme (min)",
+       y = "Média de Likes no Facebook",
+       subtitle = "Duração X Popularidade")
+
+G2.3
+
+
+```
+
+Percebeu né? A duração do filme não faz muita diferença pensando apenas na nota que ele vai receber, mas ela faz toda a diferença sobre a popularidade e o lucro do filme!
+
+Olhando pros gráficos que a gente fez ficou fácil, se você quer se dar bem nesse ramo a melhor ideia é fazer um filme com **duração entre 150-199 minutos**.
+
+Agora você já aumentou em muito seus conhecimentos sobre cinema, mas a introdução ainda não acabou, antes de continuarmos você precisa entender melhor sobre a classificação etária!
+
+Observe bem os gráficos a seguir:
+
+```{r,fig.align="center"}
+
+G3.1 <- base %>% 
+  filter(!is.na(classificacao)) %>% 
+  group_by(classificacao) %>%
+  summarise(lucro_medio=mean(lucro,na.rm = TRUE)) %>% 
+  ggplot()+
+  geom_col(aes(x=classificacao,y=lucro_medio),fill="royalblue")+
+  theme_classic()+
+  labs(x = "Classificação",
+       y = "Lucro Médio",
+       title = "Escolhendo a Classificação Etária",
+       subtitle = "Classificação X Lucro")
+G3.1
+
+
+
+```
+
+```{r,fig.align="center"}
+
+G3.2 <- base %>% 
+  filter(!is.na(classificacao)) %>% 
+  group_by(classificacao) %>%
+  summarise(nota_media=mean(nota_imdb,na.rm = TRUE)) %>% 
+  ggplot()+
+  geom_col(aes(x=classificacao,y=nota_media),fill="royalblue")+
+  theme_classic()+
+  labs(x = "Classificação",
+       y = "Nota Média",
+       subtitle = "Classificação X Avaliação")
+G3.2
+
+
+```
+
+```{r,fig.align="center"}
+G3.3 <- base %>% 
+  arrange(classificacao) %>% 
+  filter(!is.na(classificacao)) %>% 
+  group_by(classificacao) %>%
+  summarise(likes_medio=mean(likes_facebook,na.rm = TRUE)) %>% 
+  ggplot()+
+  geom_col(aes(x=classificacao,y=likes_medio),fill="royalblue")+
+  theme_classic()+
+  labs(x = "Classificação",
+       y = "Média de Likes no Facebook",
+       subtitle = "Classificação X Popularidade")
+G3.3
+
+
+
+```
+
+
+Desta vez a escolha não é tão óbvia né? As classificações que dão o maior lucro não são necessariamente as mais populares. Os filmes com classificação de “A partir de 13 anos” são aqueles com maior média de likes no facebook mas, apesar disso, é nos **filmes de classificação livre** que você deve investir se quer aumentar as suas chances de obter um lucro notável.
+
+Aqui acaba a introdução, se você chegou até aqui então já pode se considerar um inciado. **Parabéns!**
+
+### **2. Escolhendo o Melhor Gênero**
+
+Beleza, agora que você já sabe sobre a escolha da cor, da duração e da classificação etária, o próxima passo é escolher o gênero do seu filme.
+
+Nós sabemos que a avaliação da crítica e do público é importante, mas antes de tudo um filme precisa ser economincamente sustentável, sendo assim, vamos primeiro olhar o gráfico abaixo pra entender em quais gêneros temos mais chance de sucesso. Afinal, não queremos que o seu primeiro filme seja também o seu último. Por isso, fizemos uma análise dos 10 genêros com maior taxa de lucro:
+
+```{r,fig.align="center"}
+
+base_genero <- base %>%
+  mutate(generos=str_split(generos,"\\|")) %>% 
+  unnest(generos)
+
+G4 <- base_genero %>% 
+  filter(!is.na(lucrou) & !is.na(generos)) %>% 
+  count(generos,lucrou) %>% 
+  group_by(generos) %>% 
+  summarise(prob_lucro = sum(n[lucrou])/sum(n),
+            n_total=sum(n)) %>%
+  filter(n_total>100) %>% 
+  top_n(10,prob_lucro) %>% 
+  mutate(generos=fct_reorder(generos,prob_lucro)) %>% 
+  ggplot()+
+  geom_col(aes(x=generos,y=prob_lucro,fill=prob_lucro))+
+  labs(title = "Top 10 Gêneros em Taxa de Lucro",
+       subtitle = "Gêneros X Taxa de Lucro (Mínimo de 100 filmes)",
+       x= "Gênero",
+       y = "Taxa de Lucro")+
+  theme_classic()+
+  coord_flip()
+
+G4
+
+
+```
+
+Legal, mas além de uma boa chance de lucrar, também desejamos maximizar os nossos lucros, então precisamos de mais informações. Pra isso, calculamos o lucro médio das categorias listadas acima, como podemos ver no gráfico a seguir:
+
+
+```{r,fig.align="center"}
+
+top_10_generos <- base_genero %>% 
+  filter(!is.na(lucrou) & !is.na(generos)) %>% 
+  count(generos,lucrou) %>% 
+  group_by(generos) %>% 
+  summarise(prob_lucro = sum(n[lucrou])/sum(n),
+            n_total=sum(n)) %>%
+  filter(n_total>100) %>% 
+  top_n(10,prob_lucro)
+
+
+G5 <- base_genero %>% 
+  filter(!is.na(lucro) & !is.na(generos)) %>% 
+  count(generos,lucro) %>% 
+  filter(generos %in% top_10_generos$generos) %>% 
+  group_by(generos) %>% 
+  summarise(lucro_medio = mean(lucro)) %>%
+    mutate(generos=fct_reorder(generos,lucro_medio)) %>% 
+  ggplot()+
+  geom_col(aes(x=generos,y=lucro_medio,fill=lucro_medio))+
+  labs(title = "Lucro Médio dos Top 10 Gêneros em Probabilidade de Lucro",
+       subtitle = "Gêneros X Lucro Médio (Mínimo de 100 filmes",
+       x= "Gênero",
+       y = "Lucro Médio",
+       legend = "Lucro Médio")+
+  theme_classic()
+G5
+
+```
+
+Boa, agora você já tem uma noção boa dos melhores genêros a serem escolhidos para garantir a saúde financeira da sua empresa. Mas dinheiro não é tudo, não é verdade? É muito importante que seu filme seja bem avaliado pela crítica!
+
+Mas, o que é ser bem avaliado pela crítica? A partir de qual nota um filme pode ser considerado bom? Foi pensando em responder essas perguntas que trouxemos o gráfico abaixo:
+
+```{r,fig.align="center"}
+
+G6 <- base %>% 
+  filter(!is.na(nota_imdb)) %>% 
+  ggplot()+
+  #geom_boxplot(aes(x=nota_imdb,y=pais))
+  geom_histogram(aes(x=nota_imdb),fill="royalblue", color = "blue")+
+  labs(title = "Histograma de Notas",
+       subtitle = "Nota X N° de Ocorrências",
+       x = "Nota",
+       y = "N° de Ocorrências")+
+  theme_classic()
+
+G6
+
+
+```
+
+Esse gráfico mostra a distribuição das notas dos filmes, um bom jeito de entender se o seu filme teve uma boa avaliação é verificar em que quartil ele está. Claro que queremos que a nota do filme esteja no terceiro quartil (valor a partir do qual se encontram os top 25% valores mais elevados). 
+
+Não se preocupe, você não precisa fazer nenhuma conta com aquele gráfico maluco pois já fizemos ela e vamos contar o resultado! (Você não acreditou quando eu disse que E-Book era milagroso né?). **Para que a nota do seu filme esteja no top 25%, é preciso que ela seja maior ou igual a 7,1**. Assim sendo, vamos considerar com boa avaliação os filmes que tiverem uma nota igual ou superior a essa.
+
+Seguindo a linha de raciocínio, vamos dar uma olhada na probabilidade de você obter uma nota boa em filmes com os gêneros acima:
+
+```{r,fig.align="center"}
+
+G7 <- base_genero %>% 
+  filter(generos %in% top_10_generos$generos) %>%
+  filter(!is.na(nota_imdb)) %>%
+  mutate(generos=fct_reorder(generos,nota_imdb)) %>% 
+  ggplot()+
+  geom_boxplot(aes(x=generos,y=nota_imdb),color="blue",fill="royalblue")+
+  geom_hline(yintercept = 7.1)+
+  coord_flip()+
+  labs(title = "Desempenho dos Gêneros no quesito Nota",
+       subtitle = "Gênero X Nota",
+       x = "Gênero",
+       y = "Nota")+
+  theme_classic()
+
+G7
+
+
+```
+
+Aqui conseguimos observar bem o desempenho dos gêneros no que diz respeito a nota. Podemos observar que o único gênero onde a mediana está acima de 7,1 – representada por uma reta vertical - (ou seja, mais de 50% de chance de obter uma nota boa) é no de “Biografia”. Depois dele, o destaque vai para os gêneros de “Animação” e “Aventura”, cujo 3° quartil está acima de 7,1 (e portanto mais de 25% de chance de obter uma nota boa).
+
+Agora que você sabe de todas essas informações já é possível definir os melhores gêneros para se trabalhar. Como foi evidenciado pelos gráficos apresentados, a sua melhor chance de balancear lucro com avaliação da crítica é seguir no gênero de **Animação**, que além de uma altissima taxa de lucro e lucro médio, também costuma ser muito bem avaliado pela crítica e tem ótimas chances de conseguir uma boa nota!.
+
+Muito bem, com o gênero definido podemos ir para o próximo capítulo!
+
+### **3. Definindo o Elenco Ideal**
+
+Antes de pensar nos atores (Ou você achava que as vozes eram feitas no computador?), você precisa escolher o diretor!  Essa escolha é extremamente importante e vai fazer todo o impacto no filme, por isso nem pense em escolher diretores com baixa avaliação da crítica. 
+
+Mas primeiro, temos que desmistificar uma coisa importante! Todo mundo diz que a experiência é importante e bla bla bla .... será mesmo? Fizemos uma análise da nota média de diretores por n° de filmes produzidos e o resultado foi surpreendete, confere só:
+
+```{r,fig.align="center"}
+
+diretores_n_filmes <- base %>% 
+  filter(!is.na(diretor)) %>% 
+  count(diretor)
+
+lucro_medio_diretores <- base %>% 
+  filter(!is.na(diretor)) %>% 
+  group_by(diretor) %>% 
+  summarise(lucro_medio = mean(lucro,na.rm = TRUE),
+            nota_media = mean(nota_imdb,na.rm = TRUE))
+
+diretor_nfilmes_lucro <- left_join(diretores_n_filmes,lucro_medio_diretores,by = "diretor")
+
+G8.1 <- diretor_nfilmes_lucro %>%
+  group_by(n) %>%
+  summarise(nota_media_n = mean(nota_media))
+
+eixo_notas <- 1:24
+eixo_notas <- as.tibble(eixo_notas)
+colnames(eixo_notas)[1] <- "n"
+
+dados_G8 <- left_join(eixo_notas,G8.1,by = "n")
+dados_g8_tratados <- dados_G8 %>% 
+  mutate(nota_media_n = replace_na(nota_media_n,mean(nota_media_n,na.rm = TRUE)))
+
+
+G8.final <- dados_g8_tratados %>% 
+  ggplot()+
+  geom_line(aes(x=n,y=nota_media_n),color="royalblue")+
+  labs(x = "Número de filmes dirigidos",
+       y = "Nota Média",
+       title = "Comparação de experiência com desempenho",
+       subtitle = "N° de filmes dirigos X Nota Média Diretores")+
+  coord_cartesian(xlim = c(1,25), ylim = c(0,10))+
+  theme_classic()
+
+G8.final
+
+```
+
+Viu só? A nota média de diretores com muitos filmes produzidos é bastante próxima da de diretores inexperientes!
+
+Impressionante né, imagino que você esteja assim agora:
+
+```{r,fig.align="center"}
+surprised <- image_read("https://24.media.tumblr.com/5fd9b5025f3b0084eed3d6092dcf79ae/tumblr_mkic23IOd71rvyk1to1_250.gif")
+surprised <- image_scale(surprised,"400")
+
+surprised
+
+
+```
+
+
+O segredo não está na experiência, mas na qualidade, por isso vamos focar na análise de diretores que possuam boa avaliação, independente da quantidade de filmes em que já tenham trabalhado.
+
+Agora que você já sabe disso, vamos ao que interessa, pegamos os 10 diretores com maior nota média e colocamos nesse gráfico pra você conseguir avaliar as melhores opções:
+
+```{r,fig.align="center"}
+
+top_10_diretores <- base %>% 
+  filter(!is.na(diretor) & !is.na(nota_imdb) & !is.na(lucro)) %>%
+  group_by(diretor) %>% 
+  summarise(nota_media=mean(nota_imdb,na.rm = TRUE)) %>% 
+  top_n(10,nota_media) 
+
+G9 <- base %>% 
+  filter(diretor %in% top_10_diretores$diretor) %>%
+  #group_by(diretor) %>% 
+  mutate(diretor = fct_reorder(diretor,nota_imdb)) %>% 
+  ggplot()+
+  geom_boxplot(aes(x=diretor,y=nota_imdb),color="blue",fill="royalblue")+
+  coord_flip()+
+  theme_classic()+
+  labs(x = "Diretor",
+       y = "Nota",
+       title = "Comparação de Desempenho dos Diretores - Top 10 em nota",
+       subtitle = "Diretores X Nota Média")
+  
+G9
+
+
+```
+
+Fantásticos né? Esses caras mandam muito bem e são extremamente promissores, mas mantendo sempre a linha de priorizar a saúde financeira do filme, vamos dar uma olhada na distribuição de lucro desses mesmos diretores antes de bater o martelo.
+
+
+```{r,fig.align="center"}
+
+G10 <- base %>% 
+  filter(!is.na(lucro)) %>% 
+  filter(diretor %in% top_10_diretores$diretor) %>%
+  #group_by(diretor) %>% 
+  mutate(diretor = fct_reorder(diretor,lucro)) %>% 
+  ggplot()+
+  geom_boxplot(aes(x=diretor,y=lucro),color="blue",fill="royalblue")+
+  coord_flip()+
+  theme_classic()+
+  labs(x = "Diretor",
+       y = "Lucro",
+       title = "Comparação de Desempenho dos Diretores - Lucro",
+       subtitle = "Diretores X Lucro")
+G10
+
+
+```
+
+Agora ficou bem mais fácil escolher né? A gente entende que apesar de já termos provado que a experiência do diretor não é um fator preponderante, contruímos a tabelinha a seguir com o número de filmes em que cada um dos caras nos gráficos acima á trabalhou.
+
+```{r}
+
+T2 <- base %>%
+  filter(diretor %in% top_10_diretores$diretor) %>% 
+  count(diretor)
+
+T2 <- knitr::kable(T2,align = 'c',col.names = c("Diretor","N° d Filmes dirigidos"))
+
+T2
+
+
+```
+
+Show de bola, podemos então dizer que se você é arrojado e não tem medo de apostas, então definitivamente o **Milos Forman** é a melhor escolha! Mas se você prefere ter um pouco mais de segurança, não tenha medo de investir no **Christopher Nolan**.
+
+Uma vez que já definimos o diretor, o próximo passo é escolher o elenco de atores, sabemos que o número de atores necessários para produzir um filme de sucesso pode ser muito grande, por isso vamos te ajudar a entender quem são os melhores!
+
+Sabemos como é importante os atores estarem sempre aparecendo na mídia para manter a reputação e a base de fãs. Por causa disso não cogitaremos contratar atores que não tenham aparecido em nenhum filme nos últimos 5 anos, melhor já riscar eles da sua lista.
+
+Vamos então conferir quais atores possuem as melhores avaliações nos tempos modernos, com base na avaliação média dos filmes em que eles participaram:
+
+
+
+```{r,fig.align="center"}
+
+base_atores <- base %>% 
+  mutate(atores = paste0(ator_1,"/",ator_2,"/",ator_3)) %>% 
+  mutate(atores = str_split(atores,"/")) %>% 
+  unnest(atores) %>% 
+  filter(!is.na(atores))
+
+atores_elegiveis <- base_atores %>% 
+  mutate(recente = ifelse(ano>2014,TRUE,FALSE)) %>% 
+  filter(recente == TRUE)
+
+G11 <- base_atores %>% 
+  filter(atores %in% atores_elegiveis$atores) %>% 
+  group_by(atores) %>% 
+  summarise(nota_media = mean(nota_imdb)) %>%
+  mutate(atores = fct_reorder(atores,nota_media)) %>% 
+  top_n(20,nota_media) %>% 
+  ggplot()+
+  geom_col(aes(x = atores, y = nota_media, fill = nota_media))+
+  coord_flip()+
+  labs(x = "Ator",
+       y = "Nota Média",
+       title = "Melhores atores no quesito avaliação",
+       subtitle = "Ator X Nota Média dos seus filmes")+
+  theme_classic()
+
+G11
+
+```
+
+
+Com isso já da pra escolher o ator né? ERRADO! Não adianta fazer um filme bom que ninguém vai assistir, os atores além de bons precisam trazer popularidade para que seu filme seja famoso na mídia! (Ou você acha que o Neymar sempre aparece nos comerciais pela sua qualidade de atuação?)
+
+
+```{r,fig.align="center"}
+neymidia <- image_read("https://thumbs.gfycat.com/AliveEntireCommongonolek-size_restricted.gif")
+neymidia <- image_scale(neymidia,"300")
+neymidia <- image_crop(neymidia, "300x140+55",gravity = "south")
+
+neymidia
+
+
+```
+
+
+
+Por isso vamos conferir também quem são os atores mais populares do cinema, com base na média de likes do facebook nos filmes em que eles atuaram:
+
+```{r,fig.align="center"}
+
+G12 <- base_atores %>% 
+  filter(atores %in% atores_elegiveis$atores) %>% 
+  group_by(atores) %>% 
+  summarise(media_likes = mean(likes_facebook)) %>%
+  mutate(atores = fct_reorder(atores,media_likes)) %>% 
+  top_n(20,media_likes) %>% 
+  ggplot()+
+  geom_col(aes(x = atores, y = media_likes, fill = media_likes))+
+  coord_flip()+
+  labs(x = "Ator",
+       y = "Média de Likes no Facebook",
+       title = "Atores Mais Populares",
+       subtitle = "Ator X Nota Média dos seus filmes")+
+  theme_classic()
+
+G12
+
+
+```
+
+
+Agora ficou fácil escolher né? Você precisa atores que sejam não apenas bons mas que também chamem muita atenção para o seu filme. Olhando para os gráficos que trouxemos arqui, podemos concluir que os melhores atores são: **Brian d’Arcy James**, **Benedict Wong** e **R. Marcos Taylor**, que combinam boas atuações com sua ótima popularidade.
+
+
+### **4. Definindo o Investimento Inicial**
+
+Pare um pouquinho agora e pense em tudo que você já aprendeu ao longo deste simples E-book. Você evoluiu de um jovem gafanhoto para um expert no mercado de cinema, podendo fazer afirmações embasadas em dados a respeito de cor, duração, classificação, gênero, diretor e atores! Caramba, você já consegue começar a planejar o roteiro sem nenhum problema!
+
+Porém, ainda não podemos dizer que os ensinamentos acabaram, antes de sair por ai se dizendo pronto pra produzir filmes de sucesso você precisa aprender a definir o orçamento do seu filme.
+
+Imagino que você deve estar se perguntando; "Por que fizemos todas essas comparações entre lucro e nota? Filmes com nota boa não acabam gerando mais lucro?"
+
+A resposta:
+
+```{r,fig.align="center"}
+
+naoo <- image_read("https://media1.giphy.com/media/3o752g7sZytAjxS71C/giphy.gif")
+
+naoo
+
+```
+
+
+
+Olha bem pra esse gráfico aqui:
+
+```{r,fig.align="center"}
+
+G12.5 <- base %>%
+  filter(lucro_relativo<5) %>% 
+  ggplot()+
+  geom_point(aes(x = nota_imdb, y = lucro_relativo, color = lucro_relativo))+
+  theme_classic()+
+  labs(x = "Nota",
+       y = "Lucro Relativo",
+       title = "Comparação do Lucro em função da Nota",
+       subtitle = "Nota X Lucro Relativo")
+
+G12.5
+
+
+```
+
+
+Percebeu né? Uma nota boa NÃO GARANTE um lucro bom, por isso insistimos aqui que você tente maximizar as duas coisas ao mesmo tempo, focar em uma não lhe garatirá sucesso na outra!
+
+Lembre-se que o lucro em si não diz muita coisa nesse aspecto, um lucro de 10 milhões de dólares pode ser muita coisa num filme de produção pequena, mas se você tiver investido 100 milhões na produção desse filme então tenho certeza que você não ficaria satisfeito com esse resultado. Com base nessa linha de raciocínio, o que precisamos maximizar não é o lucro, mas o a proporção entre o lucro e o orçamento.
+
+Aqui temos uma gráfico de dispersão pra você enteder um pouco melhor a relação entre essas duas variáveis:
+
+
+```{r,fig.align="center"}
+
+
+G13 <- base %>% 
+  filter(orcamento>100000000) %>% 
+  ggplot()+
+  geom_point(aes(x = orcamento, y = lucro_relativo, color = lucro_relativo))+
+  theme_classic()+
+  labs(x = "Orçamento",
+       y = "Lucro Relativo",
+       title = "Dispersão do Lucro Relativo em função do Orçamento",
+       subtitle = "Orçamento X Lucro Relativo")
+
+G13
+
+
+```
+
+
+Ficou difícil de escolher né? Pensando nisso agrupamos o orçamento em faixas e tiramos alguns outliers pra conseguir construir um gráfico muito mais fácil de analisar:
+
+```{r,fig.align="center"}
+
+base_fx_orc <- base %>% 
+  mutate(faixa_orcamento = case_when(orcamento<50000000~"0-50",orcamento<100000000~"050-100",orcamento<150000000~"100-150",orcamento<200000000~"150-200",orcamento<250000000~"200-250",TRUE~"250+"))
+
+G14 <- base_fx_orc %>% 
+  filter(lucro_relativo<5) %>% 
+  group_by(faixa_orcamento) %>% 
+  summarise(lucro_rel_medio = mean(lucro_relativo,na.rm = TRUE)) %>% 
+  ggplot()+
+  geom_col(aes(x = faixa_orcamento, y = lucro_rel_medio, fill = lucro_rel_medio))+
+  theme_classic()+
+  labs(x = "Faixa de Orçamento (Milhões de USD)",
+       y = "Lucro Relativo Médio",
+       title = "Comparação do Lucro Relativo em função da Faixa de Orçamento",
+       subtitle = "Faixa de Orçamento X Lucro Relativo Médio")
+G14
+
+
+```
+
+
+Entendeu agora né? 
+
+O segredo para lucrar no ramo do cinema **não está nas super produções!**. Se você quer ser um produtor de cinema realmente bem sucedido, a chave de sucesso está em investir nos filmes de menor orçamento, onde você consegue multiplicar seu capital com muito mais facilidade, portanto **defina seu orçamento na faixa até 50 Milhões de Dólares**.
+
+
+### **5. Conclusões**
+
+Que a jornada não? Você aprendeu tanto aqui que tenho certeza que nem deve se lembrar mais de como era antes de todo esse conhecimento.
+
+Sei o quanto é difícil absorver tanta informação, por isso montamos um resuminho pra você:
+
+#### Manual para um filme de sucesso:
+
+- Colorido
+- Duração entre 150-199 minutos
+- Classificação etária Livre
+- Gênero de Animação
+- Melhores diretores: Milos Forman e Christopher Nolan
+- Melhores atores: Brian d’Arcy James, Benedict Wong e R. Marcos Taylor
+- Investimento: até 50 Milhões de dólares
+
+
+Incrível não?
+
+Mas não ache que as lições acabam por aqui, se você quer aprender ainda mais para conseguir multiplicar seus lucros e se transformar em refência para as próximas gerações tudo o que você precisa fazer é se inscrever na **Semana do Produtor de Elite**, um evento COMPLETAMENTE GRATUITO onde eu vou contar todos os segredos que descobri sobre o mercado de cinema, não perca essa chance!
+
+```{r,fig.align="center"}
+the_end <- image_read("https://media1.tenor.com/images/a887b8da34bce6e0a9c37d8bfc1489c0/tenor.gif?itemid=5412622")
+the_end <- image_scale(the_end,"500")
+
+the_end
+
+
+```
+
+
+
+Clique *aqui* para pagar a taxa de R$99,99 e pegar o seu certificado!
+
+
